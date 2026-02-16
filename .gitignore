@@ -16,6 +16,9 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 
+# Exception: Allow example tfvars files to be committed
+!*.tfvars.example
+
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
 override.tf

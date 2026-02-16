@@ -1,0 +1,10 @@
+# MongoDB Atlas Connection URI
+# Example: mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+mongo_uri = "your-mongodb-atlas-connection-string"
+
+# Frontend URL for CORS configuration
+# Example: https://your-frontend-domain.com or http://localhost:3000 for development
+frontend_url = "your-frontend-url"
+
+# Backend application port (default: 8000)
+port = 8000
