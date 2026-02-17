@@ -1,7 +1,4 @@
-# ============================================================================
 # Security Group for EC2 Instance
-# ============================================================================
-
 resource "aws_security_group" "ec2_security_group" {
   name        = "ec2-app-sg"
   description = "Security group for EC2 instance running Docker containers with MongoDB Atlas connectivity"
@@ -29,6 +26,16 @@ resource "aws_security_group" "ec2_security_group" {
     description = "HTTPS from anywhere"
     from_port   = 443
     to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Inbound rule - Allow application traffic on port 8000
+  # This allows the Load Balancer to communicate with the backend
+  ingress {
+    description = "Application port from Load Balancer"
+    from_port   = 8000
+    to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

@@ -1,6 +1,17 @@
-# ============================================================================
-# STEP 5: Create EC2 Instance Template and Attach IAM Role
-# ============================================================================
+# Data Sources: Fetch Default VPC and Subnets
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+# Create EC2 Instance Template and Attach IAM Role
 
 resource "aws_launch_template" "ec2-launch-template" {
   name = "ec2-launch-template"
@@ -41,3 +52,48 @@ resource "aws_instance" "ec2-instance" {
   }
 
 }
+
+# Create Load Balancer
+resource "aws_lb" "mern-lb" {
+  name               = "mern-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [var.security_group_id]
+  subnets            = data.aws_subnets.default.ids
+
+}
+
+resource "aws_lb_target_group" "mern-tg" {
+  name     = "mern-tg"
+  port     = 8000 # Change to var after testing
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.default.id
+
+  health_check {
+    path                = "/"
+    protocol            = "HTTP"
+    matcher             = "200-399"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_listener" "app_listener" {
+  load_balancer_arn = aws_lb.mern-lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    target_group_arn = aws_lb_target_group.mern-tg.arn
+    type             = "forward"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "app_tg_attachment" {
+  target_group_arn = aws_lb_target_group.mern-tg.arn
+  target_id        = aws_instance.ec2-instance.id
+  port             = 8000
+}
+

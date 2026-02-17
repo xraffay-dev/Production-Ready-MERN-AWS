@@ -90,7 +90,7 @@ docker rm mern-backend 2>/dev/null || true
 docker run -d \
   --name mern-backend \
   --restart unless-stopped \
-  -p 80:${PORT} \
+  -p 8000:${PORT} \
   -e MONGO_URI="${MONGO_URI}" \
   -e FRONTEND_URL="${FRONTEND_URL}" \
   -e PORT="${PORT}" \

@@ -1,7 +1,4 @@
-//# ============================================================================
-# STEP 1: Create Policy
-# Description: Define permissions that allow EC2 instances to pull images from ECR
-# ============================================================================
+# ECR Pull Policy
 resource "aws_iam_policy" "ecr_pull_policy" {
   name        = "ecr-pull-policy"
   description = "Policy to allow EC2 instances to pull images from ECR"
@@ -27,10 +24,7 @@ resource "aws_iam_policy" "ecr_pull_policy" {
   }
 }
 
-# ============================================================================
-# STEP 2: Create IAM Role (Trust Policy for EC2)
-# Description: Create a role that EC2 instances can assume
-# ============================================================================
+# IAM Role (Trust Policy for EC2)
 resource "aws_iam_role" "ec2_app_role" {
   name        = "ec2-app-role"
   description = "IAM role for EC2 instances with ECR and SSM access"
@@ -55,18 +49,13 @@ resource "aws_iam_role" "ec2_app_role" {
   }
 }
 
-# ============================================================================
-# STEP 3: Attach Policy to Role
-# Description: Link the ECR pull policy to the IAM role
-# ============================================================================
+# Attach Policy to Role
 resource "aws_iam_role_policy_attachment" "ecr_policy_attachment" {
   role       = aws_iam_role.ec2_app_role.name
   policy_arn = aws_iam_policy.ecr_pull_policy.arn
 }
 
-# ============================================================================
-# STEP 4: Create Instance Profile using Role
-# ============================================================================
+# Instance Profile using Role
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "ec2-instance-profile"
   role = aws_iam_role.ec2_app_role.name
@@ -76,15 +65,7 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   }
 }
 
-# ============================================================================
-# STEP 5: Create EC2 Instance and Attach IAM Role
-# Note: This step is implemented in modules/compute/main.tf
-# ============================================================================
-
-
-# ============================================================================
 # Create SSM Parameter Store Policy
-# ============================================================================
 resource "aws_iam_policy" "ec2_ssm_policy" {
   name        = "ec2-ssm-parameter-read-policy"
   description = "Policy to allow EC2 instances to read parameters from SSM Parameter Store"
