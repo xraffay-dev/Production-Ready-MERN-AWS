@@ -1,18 +1,4 @@
-# Data Sources: Fetch Default VPC and Subnets
-
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
 # Create EC2 Instance Template and Attach IAM Role
-
 resource "aws_launch_template" "ec2-launch-template" {
   name = "ec2-launch-template"
 
@@ -20,21 +6,13 @@ resource "aws_launch_template" "ec2-launch-template" {
     name = var.iam_instance_profile
   }
 
-  image_id = "ami-0317b0f0a0144b137"
-
+  image_id                             = "ami-0317b0f0a0144b137"
   instance_initiated_shutdown_behavior = "terminate"
-
-  instance_market_options {
-    market_type = "spot"
-  }
-
-  instance_type = "t3.micro"
-
-  vpc_security_group_ids = [var.security_group_id]
+  instance_type                        = "t3.micro"
+  vpc_security_group_ids               = [var.security_group_id]
 
   tag_specifications {
     resource_type = "instance"
-
     tags = {
       Name = "ECR-Enabled EC2 Instance"
     }
@@ -51,6 +29,7 @@ resource "aws_instance" "ec2-instance" {
     version = "$Latest"
   }
 
+  subnet_id = var.public_subnet_id
 }
 
 # Create Load Balancer
@@ -59,15 +38,14 @@ resource "aws_lb" "mern-lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.security_group_id]
-  subnets            = data.aws_subnets.default.ids
-
+  subnets            = [var.public_subnet_id]
 }
 
 resource "aws_lb_target_group" "mern-tg" {
   name     = "mern-tg"
   port     = 8000 # Change to var after testing
   protocol = "HTTP"
-  vpc_id   = data.aws_vpc.default.id
+  vpc_id   = var.vpc_id
 
   health_check {
     path                = "/"
@@ -96,4 +74,3 @@ resource "aws_lb_target_group_attachment" "app_tg_attachment" {
   target_id        = aws_instance.ec2-instance.id
   port             = 8000
 }
-
