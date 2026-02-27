@@ -2,7 +2,8 @@
 resource "aws_security_group" "ec2_security_group" {
   name        = "ec2-app-sg"
   description = "Security group for EC2 instance running Docker containers with MongoDB Atlas connectivity"
-
+  vpc_id      = var.vpc_id
+ 
   # Inbound rule - Allow SSH from anywhere
   ingress {
     description = "SSH from anywhere"

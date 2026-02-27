@@ -13,3 +13,8 @@ variable "port" {
   description = "Port number for the backend application"
   type        = number
 }
+
+variable "vpc_id" {
+  description = "The ID of the VPC in which to create the security group"
+  type        = string
+}
