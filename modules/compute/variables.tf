@@ -14,7 +14,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "public_subnet_id" {
+variable "public_subnet_id_a" {
   description = "ID of the first public subnet (AZ-a) for the EC2 instance"
   type        = string
 }
@@ -24,3 +24,12 @@ variable "public_subnet_id_b" {
   type        = string
 }
 
+variable "private_subnet_id_a" {
+  description = "ID of the first private subnet (AZ-a) for the EC2 instance"
+  type        = string
+}
+
+variable "private_subnet_id_b" {
+  description = "ID of the second private subnet (AZ-b) for the ALB"
+  type        = string
+}

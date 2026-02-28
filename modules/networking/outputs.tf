@@ -1,16 +1,26 @@
-output "public_subnet_id" {
+output "public_subnet_id_a" {
   description = "The ID of the public subnet (AZ-a)"
-  value       = aws_subnet.public.id
+  value       = aws_subnet.public_a.id
 }
 
-output "public_subnet_cidr" {
+output "public_subnet_cidr_a" {
   description = "The CIDR block of the public subnet (AZ-a)"
-  value       = aws_subnet.public.cidr_block
+  value       = aws_subnet.public_a.cidr_block
 }
 
 output "public_subnet_id_b" {
   description = "The ID of the second public subnet (AZ-b)"
   value       = aws_subnet.public_b.id
+}
+
+output "private_subnet_id_a" {
+  description = "The ID of the private subnet (AZ-a)"
+  value       = aws_subnet.private_a.id
+}
+
+output "private_subnet_id_b" {
+  description = "The ID of the private subnet (AZ-b)"
+  value       = aws_subnet.private_b.id
 }
 
 output "internet_gateway_id" {
@@ -22,4 +32,3 @@ output "public_route_table_id" {
   description = "The ID of the public route table"
   value       = aws_route_table.public.id
 }
-

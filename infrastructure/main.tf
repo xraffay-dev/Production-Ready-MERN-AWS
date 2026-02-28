@@ -14,11 +14,13 @@ module "vpc" {
 module "networking" {
   source = "../modules/networking"
 
-  vpc_id               = module.vpc.vpc_id
-  public_subnet_cidr_a = "10.0.1.0/24"
-  availability_zone_a  = "ap-south-1a"
-  public_subnet_cidr_b = "10.0.2.0/24"
-  availability_zone_b  = "ap-south-1b"
+  vpc_id                = module.vpc.vpc_id
+  public_subnet_cidr_a  = "10.0.1.0/24"
+  availability_zone_a   = "ap-south-1a"
+  public_subnet_cidr_b  = "10.0.2.0/24"
+  availability_zone_b   = "ap-south-1b"
+  private_subnet_cidr_a = "10.0.3.0/24"
+  private_subnet_cidr_b = "10.0.4.0/24"
 }
 
 # IAM Module
@@ -36,13 +38,24 @@ module "security" {
   vpc_id       = module.vpc.vpc_id
 }
 
-# EC2 instance with ECR and SSM access
+# EC2 Launch Template + ALB + Auto Scaling Group
 module "ec2" {
   source = "../modules/compute"
 
   iam_instance_profile = module.iam.ec2_instance_profile_name
   security_group_id    = module.security.security_group_id
   vpc_id               = module.vpc.vpc_id
-  public_subnet_id     = module.networking.public_subnet_id
+  public_subnet_id_a   = module.networking.public_subnet_id_a
   public_subnet_id_b   = module.networking.public_subnet_id_b
+}
+
+# Outputs
+output "asg_id" {
+  description = "The ID of the Auto Scaling Group"
+  value       = module.ec2.asg_id
+}
+
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.ec2.alb_dns_name
 }
