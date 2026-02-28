@@ -39,3 +39,13 @@ variable "private_subnet_cidr_b" {
   default     = "10.0.4.0/24"
 }
 
+variable "vpc_endpoint_sg_id" {
+  description = "ID of the VPC endpoint security group (created in the security module)"
+  type        = string
+}
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+  default     = "ap-south-1"
+}

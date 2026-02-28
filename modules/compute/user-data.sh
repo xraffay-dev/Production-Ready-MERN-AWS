@@ -8,27 +8,27 @@ log() {
 
 log "Starting EC2 instance setup..."
 
-# Update all packages
-log "Updating system packages..."
-sudo yum update -y
-sudo yum upgrade -y
+# # Update all packages
+# log "Updating system packages..."
+# sudo yum update -y
+# sudo yum upgrade -y
 
-# Install Docker
-log "Installing Docker..."
-sudo yum install docker -y
+# # Install Docker
+# log "Installing Docker..."
+# sudo yum install docker -y
 
-# Start Docker service
-log "Starting Docker service..."
-sudo systemctl start docker
-sudo systemctl enable docker
+# # Start Docker service
+# log "Starting Docker service..."
+# sudo systemctl start docker
+# sudo systemctl enable docker
 
-# Add ec2-user to docker group (allows running docker without sudo)
-sudo usermod -aG docker ec2-user
+# # Add ec2-user to docker group (allows running docker without sudo)
+# sudo usermod -aG docker ec2-user
 
-# Install Docker Compose (optional but useful)
-log "Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# # Install Docker Compose (optional but useful)
+# log "Installing Docker Compose..."
+# sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# sudo chmod +x /usr/local/bin/docker-compose
 
 # Verify installations
 docker --version

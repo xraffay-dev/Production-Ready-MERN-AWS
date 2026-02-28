@@ -6,9 +6,9 @@ resource "aws_launch_template" "ec2-launch-template" {
     name = var.iam_instance_profile
   }
 
-  image_id = "ami-0317b0f0a0144b137"
+  image_id = "ami-0bfc980bcfa30ed57"
   instance_initiated_shutdown_behavior = "terminate"
-  instance_type = "t3.micro"
+  instance_type = "c7i-flex.large"
   vpc_security_group_ids = [var.security_group_id]
 
   tag_specifications {
