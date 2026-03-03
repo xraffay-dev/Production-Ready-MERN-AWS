@@ -1,6 +1,9 @@
 # Local .terraform directories
 **/.terraform/*
 
+# Grocy data
+Grocy/
+
 # commands.txt
 commands.txt
 
