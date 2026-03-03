@@ -1,0 +1,35 @@
+name: Update Backend Image
+on: [workflow_dispatch]
+permissions:
+  id-token: write
+  contents: read
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+              with:
+                sparse-checkout: backend/
+            - name: Build Image
+              run: |
+                docker build -t myapp .
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: ${{ secrets.ROLE_ARN }}
+                aws-region: ${{secrets.AWS_REGION}}
+            - name: Login to ECR
+              run: |
+                aws ecr get-login-password \
+                --region ${{secrets.AWS_REGION}} | docker login \
+                --username AWS \
+                --password-stdin ${{secrets.ECR_URI}}
+            - name: Tag Image
+              run: |
+                docker tag myapp:latest ${{secrets.ECR_URI}}:latest
+            - name: Push Image
+              run: |
+                docker push ${{secrets.ECR_URI}}:latest
+
+            

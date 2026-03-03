@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "v": { "$numberInt": "2" },
+      "key": { "_id": { "$numberInt": "1" } },
+      "name": "_id_"
+    },
+    {
+      "v": { "$numberInt": "2" },
+      "key": { "productID": { "$numberInt": "1" } },
+      "name": "productID_1",
+      "background": true,
+      "unique": true
+    }
+  ],
+  "uuid": "4cca0cde53be48d19abfcc09ba954e69",
+  "collectionName": "Raja Sahib",
+  "type": "collection"
+}

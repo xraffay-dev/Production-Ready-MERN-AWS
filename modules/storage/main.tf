@@ -73,17 +73,55 @@ resource "aws_cloudfront_origin_access_control" "frontend_oac" {
   signing_protocol                  = "sigv4"
 }
 
+# CloudFront Function — strip the /api prefix before forwarding to the ALB
+# Without this, a request to /api/products would arrive at the ALB as
+# /api/products. The backend only handles /products, so we rewrite the URI
+# by removing the /api prefix here before the request leaves CloudFront.
+resource "aws_cloudfront_function" "api_rewrite" {
+  name    = "api-path-rewrite"
+  runtime = "cloudfront-js-2.0"
+  comment = "Strip /api prefix from requests before forwarding to the ALB"
+  publish = true
+
+  code = <<-EOF
+    async function handler(event) {
+      var request = event.request;
+      // Remove the leading /api segment so /api/foo becomes /foo
+      request.uri = request.uri.replace(/^\/api/, '');
+      if (request.uri === '' || request.uri === undefined) {
+        request.uri = '/';
+      }
+      return request;
+    }
+  EOF
+}
+
 # CloudFront Distribution
 resource "aws_cloudfront_distribution" "frontend_dist" {
   enabled             = true
   default_root_object = "index.html"
 
+  # Origin 1: S3 bucket for static frontend files
   origin {
     domain_name              = aws_s3_bucket.s3-bucket-frontend-deployment.bucket_regional_domain_name
     origin_id                = "S3-frontend"
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend_oac.id
   }
 
+  # Origin 2: ALB for backend API
+  origin {
+    domain_name = var.alb_dns_name
+    origin_id   = "ALB-backend"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  # Default behavior: serve static files from S3
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
@@ -102,7 +140,34 @@ resource "aws_cloudfront_distribution" "frontend_dist" {
     max_ttl     = 86400
   }
 
-  # Custom error responses
+  # API behavior: forward /api/* requests to the ALB (no caching)
+  ordered_cache_behavior {
+    path_pattern           = "/api/*"
+    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "ALB-backend"
+    viewer_protocol_policy = "redirect-to-https"
+
+    # Strip /api prefix before forwarding to ALB
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.api_rewrite.arn
+    }
+
+    forwarded_values {
+      query_string = true
+      headers      = ["Origin", "Authorization", "Accept", "Content-Type"]
+      cookies {
+        forward = "all"
+      }
+    }
+
+    min_ttl     = 0
+    default_ttl = 0
+    max_ttl     = 0
+  }
+
+  # Custom error responses (SPA routing)
   custom_error_response {
     error_code         = 403
     response_code      = 200

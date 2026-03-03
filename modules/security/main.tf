@@ -44,7 +44,7 @@ resource "aws_security_group" "ec2_security_group" {
   # Outbound rule - Allow all outbound traffic
   # This allows:
   # - Docker to pull images from ECR
-  # - EC2 instance to connect to MongoDB Atlas (port 27017)
+  # - EC2 instance to connect to DocumentDB (port 27017)
   # - General internet access for package updates
   egress {
     description = "Allow all outbound traffic"
@@ -102,21 +102,37 @@ resource "aws_security_group" "vpc_endpoint_sg" {
   }
 }
 
-resource "aws_ssm_parameter" "ec2_config_PORT" {
-  name  = "/ec2/config/PORT"
-  type  = "String"
-  value = tostring(var.port)
-}
 
-resource "aws_ssm_parameter" "ec2_config_MONGO_URI" {
-  name  = "/ec2/config/MONGO_URI"
-  type  = "SecureString"
-  value = var.mongo_uri
-}
+# ---------------------------------------------------------------------------
+# Security Group for DocumentDB
+# ---------------------------------------------------------------------------
+# This security group is attached to the DocumentDB cluster. It allows
+# inbound traffic on port 27017 (MongoDB protocol) ONLY from within the VPC.
+# This ensures the database is never exposed to the public internet.
+resource "aws_security_group" "docdb" {
+  name        = "${var.project_name}-docdb-sg"
+  description = "Security group for DocumentDB cluster - allows MongoDB port 27017 from VPC"
+  vpc_id      = var.vpc_id
 
-resource "aws_ssm_parameter" "ec2_config_Frontend_URL" {
-  name  = "/ec2/config/Frontend_URL"
-  type  = "String"
-  value = var.frontend_url
-}
+  # Inbound: Allow MongoDB connections from the VPC CIDR
+  ingress {
+    description = "MongoDB from VPC"
+    from_port   = 27017
+    to_port     = 27017
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr_block]
+  }
 
+  # Outbound: Allow all (needed for internal cluster replication)
+  egress {
+    description = "Allow all outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name} DocumentDB Security Group"
+  }
+}

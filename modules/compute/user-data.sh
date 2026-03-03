@@ -46,24 +46,45 @@ log "AWS Region: $AWS_REGION"
 # ============================================================================
 log "Fetching configuration from SSM Parameter Store..."
 
-# Fetch parameters from SSM
-MONGO_URI=$(aws ssm get-parameter --name "/ec2/config/MONGO_URI" --with-decryption --region $AWS_REGION --query "Parameter.Value" --output text)
+# Fetch DocumentDB URI (replaces old MongoDB Atlas URI)
+DOCDB_URI=$(aws ssm get-parameter --name "/ec2/config/DOCDB_URI" --with-decryption --region $AWS_REGION --query "Parameter.Value" --output text)
 FRONTEND_URL=$(aws ssm get-parameter --name "/ec2/config/Frontend_URL" --region $AWS_REGION --query "Parameter.Value" --output text)
 PORT=$(aws ssm get-parameter --name "/ec2/config/PORT" --region $AWS_REGION --query "Parameter.Value" --output text)
+DOCDB_CERT_BUCKET=$(aws ssm get-parameter --name "/ec2/config/DOCDB_CERT_BUCKET" --region $AWS_REGION --query "Parameter.Value" --output text)
 
 # Verify parameters were fetched successfully
-if [ -z "$MONGO_URI" ] || [ -z "$FRONTEND_URL" ] || [ -z "$PORT" ]; then
+if [ -z "$DOCDB_URI" ] || [ -z "$FRONTEND_URL" ] || [ -z "$PORT" ] || [ -z "$DOCDB_CERT_BUCKET" ]; then
     log "ERROR: Failed to fetch one or more parameters from SSM"
-    log "MONGO_URI: ${MONGO_URI:+SET} ${MONGO_URI:-NOT SET}"
+    log "DOCDB_URI: ${DOCDB_URI:+SET} ${DOCDB_URI:-NOT SET}"
     log "FRONTEND_URL: ${FRONTEND_URL:+SET} ${FRONTEND_URL:-NOT SET}"
     log "PORT: ${PORT:+SET} ${PORT:-NOT SET}"
+    log "DOCDB_CERT_BUCKET: ${DOCDB_CERT_BUCKET:+SET} ${DOCDB_CERT_BUCKET:-NOT SET}"
     exit 1
 fi
 
 log "Configuration fetched successfully from SSM"
 log "PORT: $PORT"
 log "FRONTEND_URL: $FRONTEND_URL"
-log "MONGO_URI: [REDACTED for security]"
+log "DOCDB_URI: [REDACTED for security]"
+log "DOCDB_CERT_BUCKET: $DOCDB_CERT_BUCKET"
+
+# ============================================================================
+# Download DocumentDB TLS Certificate from S3
+# ============================================================================
+# The global-bundle.pem is stored in S3 (too large for SSM's 4KB limit).
+# Traffic goes through the S3 VPC Gateway Endpoint — no internet needed.
+log "Downloading DocumentDB TLS certificate from S3..."
+
+CERT_PATH="/home/ec2-user/global-bundle.pem"
+aws s3 cp "s3://${DOCDB_CERT_BUCKET}/certs/global-bundle.pem" "$CERT_PATH" --region $AWS_REGION
+
+if [ ! -f "$CERT_PATH" ]; then
+    log "ERROR: Failed to download TLS certificate from S3"
+    exit 1
+fi
+
+chmod 644 "$CERT_PATH"
+log "TLS certificate downloaded to $CERT_PATH"
 
 # ============================================================================
 # Authenticate Docker to ECR and Pull Image
@@ -78,22 +99,26 @@ docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/main/mern-on-aws-b
 docker images | grep mern-on-aws-backend-image
 
 # ============================================================================
-# Run Docker Container with Environment Variables from SSM
+# Run Docker Container with DocumentDB Configuration
 # ============================================================================
-log "Starting Docker container with configuration from SSM..."
+log "Starting Docker container with DocumentDB configuration..."
 
 # Stop and remove any existing container with the same name
 docker stop mern-backend 2>/dev/null || true
 docker rm mern-backend 2>/dev/null || true
 
-# Run the container with environment variables from SSM
+# Run the container with:
+#   - DOCDB_URI passed as MONGO_URI env var (app still uses MONGO_URI internally)
+#   - TLS cert mounted from host into the container at the same path
+#     referenced in the connection string
 docker run -d \
   --name mern-backend \
   --restart unless-stopped \
   -p 8000:${PORT} \
-  -e MONGO_URI="${MONGO_URI}" \
+  -e MONGO_URI="${DOCDB_URI}" \
   -e FRONTEND_URL="${FRONTEND_URL}" \
   -e PORT="${PORT}" \
+  -v ${CERT_PATH}:${CERT_PATH}:ro \
   $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/main/mern-on-aws-backend-image:latest
 
 # Verify container is running

@@ -1,17 +1,7 @@
-variable "mongo_uri" {
-  description = "MongoDB Atlas connection URI for the application"
+variable "project_name" {
+  description = "Project name used as a prefix for resource names"
   type        = string
-  sensitive   = true
-}
-
-variable "frontend_url" {
-  description = "Frontend URL for CORS configuration"
-  type        = string
-}
-
-variable "port" {
-  description = "Port number for the backend application"
-  type        = number
+  default     = "grocy"
 }
 
 variable "vpc_id" {

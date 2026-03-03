@@ -12,3 +12,8 @@ output "vpc_endpoint_sg_id" {
   description = "ID of the VPC endpoint security group"
   value       = aws_security_group.vpc_endpoint_sg.id
 }
+
+output "docdb_sg_id" {
+  description = "ID of the DocumentDB security group"
+  value       = aws_security_group.docdb.id
+}

@@ -1,9 +1,16 @@
 
 # Storage Module
-# //S3 Bucket for Frontend Deployment
-# module "s3-bucket-frontend-deployment" {
-#   source = "../modules/storage"
-# }
+# S3 Bucket + CloudFront Distribution for Frontend Deployment
+# alb_dns_name is wired from the compute module so CloudFront can forward
+# /api/* requests to the ALB backend origin.
+module "s3-bucket-frontend-deployment" {
+  source = "../modules/storage"
+
+  alb_dns_name = module.ec2.alb_dns_name #UNCOMMENT THIS
+
+  # The storage module depends on the compute module to know the ALB DNS.
+  depends_on = [module.ec2] #UNCOMMENT THIS
+}
 
 # VPC Module
 module "vpc" {
@@ -13,15 +20,14 @@ module "vpc" {
 # IAM Module
 module "iam" {
   source = "../modules/iam"
+
+  docdb_cert_bucket = module.database.config_bucket_name
 }
 
 # Security Module
 module "security" {
   source = "../modules/security"
 
-  mongo_uri      = var.mongo_uri
-  frontend_url   = var.frontend_url
-  port           = var.port
   vpc_id         = module.vpc.vpc_id
   vpc_cidr_block = module.vpc.vpc_cidr_block
 }
@@ -40,7 +46,7 @@ module "networking" {
   private_subnet_cidr_b = "10.0.4.0/24"
 }
 
-# EC2 Launch Template + ALB + Auto Scaling Group
+# # EC2 Launch Template + ALB + Auto Scaling Group
 module "ec2" {
   source = "../modules/compute"
 
@@ -53,13 +59,86 @@ module "ec2" {
   private_subnet_id_b  = module.networking.private_subnet_id_b
 }
 
-# Outputs
-output "asg_id" {
-  description = "The ID of the Auto Scaling Group"
-  value       = module.ec2.asg_id
+# DocumentDB Module
+module "database" {
+  source = "../modules/database"
+
+  docdb_security_group_id = module.security.docdb_sg_id
+  private_subnet_ids      = [module.networking.private_subnet_id_a, module.networking.private_subnet_id_b]
+
+  docdb_master_username = var.docdb_master_username
+  docdb_master_password = var.docdb_master_password
+
+  # Instance configuration
+  instance_class     = "db.t3.medium"
+  instance_count     = 2
+  availability_zones = ["ap-south-1a", "ap-south-1b"]
+
+  # Backup & protection (adjust for production)
+  backup_retention_period = 7
+  skip_final_snapshot     = true
+  deletion_protection     = false
+
+  # TLS certificate path (local file, uploaded to S3 by Terraform)
+  docdb_tls_cert_path = var.docdb_tls_cert_path
 }
 
-output "alb_dns_name" {
-  description = "DNS name of the Application Load Balancer"
-  value       = module.ec2.alb_dns_name
+# ---------------------------------------------------------------------------
+# SSM Parameter — FRONTEND_URL
+# ---------------------------------------------------------------------------
+# The EC2 user-data fetches this at boot and passes it to the Docker container
+# as FRONTEND_URL (used for CORS). We set it here — after CloudFront is
+# created — so it always reflects the real CloudFront domain, not localhost.
+resource "aws_ssm_parameter" "frontend_url" {
+  name      = "/ec2/config/Frontend_URL"
+  type      = "String"
+  value     = module.s3-bucket-frontend-deployment.cloudfront_domain_name
+  overwrite = true
+
+  tags = {
+    Name = "Frontend CloudFront URL"
+  }
+
+  # depends_on = [module.s3-bucket-frontend-deployment]
 }
+
+# SSM Parameter — PORT
+# Keeps the port value in SSM so the user-data script can fetch it without
+# any hardcoded values in the launch template.
+resource "aws_ssm_parameter" "port" {
+  name      = "/ec2/config/PORT"
+  type      = "String"
+  value     = tostring(var.port)
+  overwrite = true
+
+  tags = {
+    Name = "Backend Application Port"
+  }
+}
+
+# # Outputs
+# output "asg_id" {
+#   description = "The ID of the Auto Scaling Group"
+#   value       = module.ec2.asg_id
+# }
+
+# output "alb_dns_name" {
+#   description = "DNS name of the Application Load Balancer"
+#   value       = module.ec2.alb_dns_name
+# }
+
+# output "cloudfront_domain_name" {
+#   description = "CloudFront distribution URL — use this as your frontend URL"
+#   value       = module.s3-bucket-frontend-deployment.cloudfront_domain_name
+# }
+
+# output "docdb_cluster_endpoint" {
+#   description = "DocumentDB cluster endpoint"
+#   value       = module.database.cluster_endpoint
+# }
+
+# output "docdb_connection_string" {
+#   description = "DocumentDB connection string (sensitive)"
+#   value       = module.database.connection_string
+#   sensitive   = true
+# }
