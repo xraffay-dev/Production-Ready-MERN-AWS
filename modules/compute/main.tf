@@ -33,7 +33,7 @@ resource "aws_lb" "mern-lb" {
 
 resource "aws_lb_target_group" "mern-tg" {
   name     = "mern-tg"
-  port     = 8000 # Change to var after testing
+  port     = var.port
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 

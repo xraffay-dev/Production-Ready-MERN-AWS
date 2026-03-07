@@ -80,8 +80,8 @@ resource "aws_docdb_cluster" "docdb" {
   vpc_security_group_ids          = [var.docdb_security_group_id]
 
   # Backup configuration
-  #   backup_retention_period = var.backup_retention_period
-  #   preferred_backup_window = "03:00-04:00" # UTC — 8:00-9:00 AM PKT
+  backup_retention_period = var.backup_retention_period
+  preferred_backup_window = "03:00-04:00" # UTC — 8:00-9:00 AM PKT
 
   # Maintenance window (non-overlapping with backup window)
   preferred_maintenance_window = "sun:05:00-sun:06:00"

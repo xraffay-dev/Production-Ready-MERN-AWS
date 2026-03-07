@@ -6,10 +6,10 @@
 module "s3-bucket-frontend-deployment" {
   source = "../modules/storage"
 
-  alb_dns_name = module.ec2.alb_dns_name #UNCOMMENT THIS
+  alb_dns_name = module.ec2.alb_dns_name
 
   # The storage module depends on the compute module to know the ALB DNS.
-  depends_on = [module.ec2] #UNCOMMENT THIS
+  depends_on = [module.ec2]
 }
 
 # VPC Module
@@ -46,7 +46,7 @@ module "networking" {
   private_subnet_cidr_b = "10.0.4.0/24"
 }
 
-# # EC2 Launch Template + ALB + Auto Scaling Group
+# EC2 Launch Template + ALB + Auto Scaling Group
 module "ec2" {
   source = "../modules/compute"
 
@@ -57,6 +57,7 @@ module "ec2" {
   public_subnet_id_b   = module.networking.public_subnet_id_b
   private_subnet_id_a  = module.networking.private_subnet_id_a
   private_subnet_id_b  = module.networking.private_subnet_id_b
+  port                 = var.port
 }
 
 # DocumentDB Module
@@ -90,55 +91,62 @@ module "database" {
 # as FRONTEND_URL (used for CORS). We set it here — after CloudFront is
 # created — so it always reflects the real CloudFront domain, not localhost.
 resource "aws_ssm_parameter" "frontend_url" {
-  name      = "/ec2/config/Frontend_URL"
-  type      = "String"
-  value     = module.s3-bucket-frontend-deployment.cloudfront_domain_name
-  overwrite = true
+  name  = "/ec2/config/Frontend_URL"
+  type  = "String"
+  value = module.s3-bucket-frontend-deployment.cloudfront_domain_name
 
   tags = {
     Name = "Frontend CloudFront URL"
   }
-
-  # depends_on = [module.s3-bucket-frontend-deployment]
 }
 
 # SSM Parameter — PORT
 # Keeps the port value in SSM so the user-data script can fetch it without
 # any hardcoded values in the launch template.
 resource "aws_ssm_parameter" "port" {
-  name      = "/ec2/config/PORT"
-  type      = "String"
-  value     = tostring(var.port)
-  overwrite = true
+  name  = "/ec2/config/PORT"
+  type  = "String"
+  value = tostring(var.port)
 
   tags = {
     Name = "Backend Application Port"
   }
 }
 
-# # Outputs
-# output "asg_id" {
-#   description = "The ID of the Auto Scaling Group"
-#   value       = module.ec2.asg_id
-# }
+# ---------------------------------------------------------------------------
+# Frontend .env.production — kept in sync with the real CloudFront URL
+# ---------------------------------------------------------------------------
+# After every apply, Terraform rewrites ../frontend/.env.production so the
+# next `npm run build` picks up the correct VITE_API_BASE_URL automatically.
+# No manual copy-paste of CloudFront domains ever needed.
+resource "local_file" "frontend_env_production" {
+  content  = "VITE_API_BASE_URL=${module.s3-bucket-frontend-deployment.cloudfront_domain_name}/api\n"
+  filename = "${path.module}/../frontend/.env.production"
+}
 
-# output "alb_dns_name" {
-#   description = "DNS name of the Application Load Balancer"
-#   value       = module.ec2.alb_dns_name
-# }
+# Outputs
+output "asg_id" {
+  description = "The ID of the Auto Scaling Group"
+  value       = module.ec2.asg_id
+}
 
-# output "cloudfront_domain_name" {
-#   description = "CloudFront distribution URL — use this as your frontend URL"
-#   value       = module.s3-bucket-frontend-deployment.cloudfront_domain_name
-# }
+output "alb_dns_name" {
+  description = "DNS name of the Application Load Balancer"
+  value       = module.ec2.alb_dns_name
+}
 
-# output "docdb_cluster_endpoint" {
-#   description = "DocumentDB cluster endpoint"
-#   value       = module.database.cluster_endpoint
-# }
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution URL — use this as your frontend URL"
+  value       = module.s3-bucket-frontend-deployment.cloudfront_domain_name
+}
 
-# output "docdb_connection_string" {
-#   description = "DocumentDB connection string (sensitive)"
-#   value       = module.database.connection_string
-#   sensitive   = true
-# }
+output "docdb_cluster_endpoint" {
+  description = "DocumentDB cluster endpoint"
+  value       = module.database.cluster_endpoint
+}
+
+output "docdb_connection_string" {
+  description = "DocumentDB connection string (sensitive)"
+  value       = module.database.connection_string
+  sensitive   = true
+}

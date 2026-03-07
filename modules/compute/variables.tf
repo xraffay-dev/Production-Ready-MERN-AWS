@@ -33,3 +33,9 @@ variable "private_subnet_id_b" {
   description = "ID of the second private subnet (AZ-b) for the ALB"
   type        = string
 }
+
+variable "port" {
+  description = "Port the backend application listens on"
+  type        = number
+  default     = 8000
+}

@@ -218,3 +218,17 @@ resource "aws_s3_bucket_policy" "frontend_bucket_policy" {
     ]
   })
 }
+
+# Invalidate CloudFront cache whenever S3 objects change
+# Triggered by a hash of all object etags — only runs when at least one file differs.
+resource "null_resource" "cloudfront_invalidation" {
+  triggers = {
+    s3_etags = sha1(join(",", [for obj in aws_s3_object.frontend-files : obj.etag]))
+  }
+
+  provisioner "local-exec" {
+    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.frontend_dist.id} --paths '/*' --region ap-south-1"
+  }
+
+  depends_on = [aws_s3_object.frontend-files]
+}
