@@ -39,3 +39,16 @@ jobs:
       - name: Push Image
         run: |
           docker push ${{ secrets.ECR_URI }}:latest
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Get ASG Name
+        id: tf_output
+        run: |
+          terraform init
+          echo "asg_name=$(terraform output -raw asg_name)" >> $GITHUB_OUTPUT
+        working-directory: infrastructure
+      - name: Refresh ASG Instances
+        run: |
+          aws autoscaling start-instance-refresh \
+          --auto-scaling-group-name ${{ steps.tf_output.outputs.asg_name }}
+
