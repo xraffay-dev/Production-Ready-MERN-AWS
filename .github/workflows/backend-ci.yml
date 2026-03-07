@@ -13,7 +13,7 @@ jobs:
                 sparse-checkout: backend/
             - name: Build Image
               run: |
-                docker build -t main-app backend/Dockerfile .
+                docker build -t main-app backend/
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v4
               with:
