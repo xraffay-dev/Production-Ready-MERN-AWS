@@ -1,7 +1,9 @@
 // API Base URL - automatically switches based on environment
 // Development: uses .env.development (http://localhost:8000)
 // Production: uses .env.production (CloudFront URL)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    (import.meta.env.PROD ? "/api" : "http://localhost:8000");
 
 /**
  * Fetch with timeout to prevent hanging requests
