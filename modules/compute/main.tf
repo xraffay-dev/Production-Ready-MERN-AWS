@@ -63,6 +63,7 @@ resource "aws_lb_listener" "app_listener" {
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "asg" {
+  # name = mern-asg
   desired_capacity = 1
   max_size         = 2
   min_size         = 1

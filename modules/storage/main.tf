@@ -227,7 +227,8 @@ resource "null_resource" "cloudfront_invalidation" {
   }
 
   provisioner "local-exec" {
-    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.frontend_dist.id} --paths '/*' --region ap-south-1"
+    interpreter = ["PowerShell", "-Command"]
+    command     = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.frontend_dist.id} --paths '/*' --region ap-south-1"
   }
 
   depends_on = [aws_s3_object.frontend-files]
