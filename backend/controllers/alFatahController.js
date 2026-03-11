@@ -35,7 +35,7 @@ async function storeAlFatahData(items) {
       if (productURL.includes("https://alfatah.pkhttps://alfatah.pk")) {
         productURL = productURL.replace(
           "https://alfatah.pkhttps://alfatah.pk",
-          "https://alfatah.pk"
+          "https://alfatah.pk",
         );
       }
 
@@ -84,7 +84,7 @@ async function storeAlFatahData(items) {
             discount: discount,
             availableAt: "Al-Fatah",
           },
-          { upsert: true, new: true }
+          { upsert: true, new: true },
         );
 
         if (isNew) {
@@ -93,7 +93,7 @@ async function storeAlFatahData(items) {
           updatedCount++;
           console.log(`[UPDATED] ${productName}`);
           console.log(
-            `  Original Price: ${originalPrice}, Discounted Price: ${discountedPrice}, Discount: ${discount}%`
+            `  Original Price: ${originalPrice}, Discounted Price: ${discountedPrice}, Discount: ${discount}%`,
           );
         }
         processedCount++;
@@ -104,7 +104,7 @@ async function storeAlFatahData(items) {
     }
 
     console.log(
-      `Al-Fatah: ${processedCount} processed (${createdCount} created, ${updatedCount} updated), ${skippedCount} skipped`
+      `Al-Fatah: ${processedCount} processed (${createdCount} created, ${updatedCount} updated), ${skippedCount} skipped`,
     );
   } catch (error) {
     console.error("Error storing products:", error);

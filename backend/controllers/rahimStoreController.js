@@ -71,7 +71,7 @@ async function storeRahimStoreData(items) {
           discount: discount,
           availableAt: "Rahim Store",
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
 
       if (isNew) {
@@ -80,14 +80,14 @@ async function storeRahimStoreData(items) {
         updatedCount++;
         console.log(`[UPDATED] ${productName}`);
         console.log(
-          `  Original Price: ${originalPrice}, Discounted Price: ${discountedPrice}, Discount: ${discount}%`
+          `  Original Price: ${originalPrice}, Discounted Price: ${discountedPrice}, Discount: ${discount}%`,
         );
       }
       processedCount++;
     }
 
     console.log(
-      `Rahim Store: ${processedCount} processed (${createdCount} created, ${updatedCount} updated), ${skippedCount} skipped`
+      `Rahim Store: ${processedCount} processed (${createdCount} created, ${updatedCount} updated), ${skippedCount} skipped`,
     );
   } catch (error) {
     console.error("Error storing products:", error);
@@ -99,7 +99,7 @@ const displayProducts = async () => {
   const productModel = mongoose.model(
     "Rahim Store",
     productSchema,
-    "Rahim Store"
+    "Rahim Store",
   );
   const products = await productModel.find();
 
@@ -116,7 +116,7 @@ const displayProduct = async (productID = "nil") => {
     const productModel = mongoose.model(
       "Rahim Store",
       productSchema,
-      "Rahim Store"
+      "Rahim Store",
     );
 
     if (productID === "nil") {

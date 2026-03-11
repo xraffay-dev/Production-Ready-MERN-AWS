@@ -92,7 +92,7 @@ async function storeRajaSahibData(items) {
           discount: discount,
           availableAt: "Raja Sahib",
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
 
       if (isNew) {
@@ -101,14 +101,14 @@ async function storeRajaSahibData(items) {
         updatedCount++;
         console.log(`[UPDATED] ${productName}`);
         console.log(
-          `  Original Price: ${originalPrice}, Discounted Price: ${discountedPrice}, Discount: ${discount}%`
+          `  Original Price: ${originalPrice}, Discounted Price: ${discountedPrice}, Discount: ${discount}%`,
         );
       }
       processedCount++;
     }
 
     console.log(
-      `Raja Sahib: ${processedCount} processed (${createdCount} created, ${updatedCount} updated), ${skippedCount} skipped`
+      `Raja Sahib: ${processedCount} processed (${createdCount} created, ${updatedCount} updated), ${skippedCount} skipped`,
     );
   } catch (error) {
     console.error("Error storing products:", error);
@@ -120,7 +120,7 @@ const displayProducts = async () => {
   const productModel = mongoose.model(
     "Raja Sahib",
     productSchema,
-    "Raja Sahib"
+    "Raja Sahib",
   );
   const products = await productModel.find();
 
@@ -137,7 +137,7 @@ const displayProduct = async (productID = "nil") => {
     const productModel = mongoose.model(
       "Raja Sahib",
       productSchema,
-      "Raja Sahib"
+      "Raja Sahib",
     );
 
     if (productID === "nil") {
