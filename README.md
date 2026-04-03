@@ -19,9 +19,7 @@ This project demonstrates how to architect, provision, and deploy a complete MER
 
 ## 📐 Architecture Overview
 
-<p align="center">
-  <img src="Architecture Diagram BG-White.svg" alt="AWS Architecture Diagram" width="100%" />
-</p>
+![AWS Architecture Diagram](./Architecture%20Diagram%20BG-White.svg)
 
 ### Traffic Flow
 
@@ -57,15 +55,15 @@ modules/
 
 ### Module Details
 
-| Module | Resources Created | Purpose |
-|--------|------------------|---------|
-| **`vpc`** | VPC with DNS support & hostnames | Foundation network with private DNS for VPC Endpoints |
-| **`networking`** | 4 Subnets, IGW, Route Tables, 6 VPC Endpoints | Multi-AZ networking with zero-NAT architecture |
-| **`security`** | 3 Security Groups (EC2, VPC Endpoints, DocumentDB) | Least-privilege network segmentation |
-| **`iam`** | IAM Role, Instance Profile, 3 Policies (ECR, SSM, S3) | EC2 permissions for ECR pull, SSM read, cert download |
-| **`compute`** | Launch Template, ALB, Target Group, ASG, Scaling Policy | Dockerized backend with CPU-based auto-scaling |
-| **`database`** | DocumentDB Cluster, 2 Instances, Parameter Group, S3 cert bucket | MongoDB-compatible DB with TLS, backups, encryption at rest |
-| **`storage`** | S3 Bucket, CloudFront Distribution, OAC, Cache Invalidation | Static frontend hosting with CDN and API path rewriting |
+| Module           | Resources Created                                                | Purpose                                                     |
+| ---------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| **`vpc`**        | VPC with DNS support & hostnames                                 | Foundation network with private DNS for VPC Endpoints       |
+| **`networking`** | 4 Subnets, IGW, Route Tables, 6 VPC Endpoints                    | Multi-AZ networking with zero-NAT architecture              |
+| **`security`**   | 3 Security Groups (EC2, VPC Endpoints, DocumentDB)               | Least-privilege network segmentation                        |
+| **`iam`**        | IAM Role, Instance Profile, 3 Policies (ECR, SSM, S3)            | EC2 permissions for ECR pull, SSM read, cert download       |
+| **`compute`**    | Launch Template, ALB, Target Group, ASG, Scaling Policy          | Dockerized backend with CPU-based auto-scaling              |
+| **`database`**   | DocumentDB Cluster, 2 Instances, Parameter Group, S3 cert bucket | MongoDB-compatible DB with TLS, backups, encryption at rest |
+| **`storage`**    | S3 Bucket, CloudFront Distribution, OAC, Cache Invalidation      | Static frontend hosting with CDN and API path rewriting     |
 
 ---
 
@@ -73,18 +71,18 @@ modules/
 
 This infrastructure implements defense-in-depth across every layer:
 
-| Layer | Implementation |
-|-------|---------------|
-| **Network Isolation** | EC2 and DocumentDB run in **private subnets** with no public IPs or internet access |
-| **Zero NAT Gateway** | All AWS API calls (ECR, SSM, S3) use **VPC Interface & Gateway Endpoints**, eliminating NAT costs and internet exposure |
-| **TLS Everywhere** | DocumentDB enforces TLS with `global-bundle.pem`; CloudFront redirects to HTTPS |
-| **Encryption at Rest** | DocumentDB storage encrypted via AWS KMS; S3 objects use AES-256 SSE |
-| **Secrets Management** | Database credentials stored in **SSM Parameter Store** (`SecureString`); no secrets in code or env files |
-| **Least-Privilege IAM** | EC2 role scoped to specific ECR repos, SSM paths (`/ec2/config/*`), and a single S3 bucket |
-| **S3 Hardening** | Public access blocked on all buckets; CloudFront uses **Origin Access Control (OAC)** for S3 |
-| **Security Groups** | DocumentDB accepts traffic only from VPC CIDR on port 27017; VPC Endpoint SGs scoped to VPC CIDR on 443 |
-| **Docker Security** | Container runs as **non-root user** with health checks |
-| **OIDC Authentication** | GitHub Actions authenticates to AWS via **OIDC federation** — no long-lived access keys |
+| Layer                   | Implementation                                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Network Isolation**   | EC2 and DocumentDB run in **private subnets** with no public IPs or internet access                                     |
+| **Zero NAT Gateway**    | All AWS API calls (ECR, SSM, S3) use **VPC Interface & Gateway Endpoints**, eliminating NAT costs and internet exposure |
+| **TLS Everywhere**      | DocumentDB enforces TLS with `global-bundle.pem`; CloudFront redirects to HTTPS                                         |
+| **Encryption at Rest**  | DocumentDB storage encrypted via AWS KMS; S3 objects use AES-256 SSE                                                    |
+| **Secrets Management**  | Database credentials stored in **SSM Parameter Store** (`SecureString`); no secrets in code or env files                |
+| **Least-Privilege IAM** | EC2 role scoped to specific ECR repos, SSM paths (`/ec2/config/*`), and a single S3 bucket                              |
+| **S3 Hardening**        | Public access blocked on all buckets; CloudFront uses **Origin Access Control (OAC)** for S3                            |
+| **Security Groups**     | DocumentDB accepts traffic only from VPC CIDR on port 27017; VPC Endpoint SGs scoped to VPC CIDR on 443                 |
+| **Docker Security**     | Container runs as **non-root user** with health checks                                                                  |
+| **OIDC Authentication** | GitHub Actions authenticates to AWS via **OIDC federation** — no long-lived access keys                                 |
 
 ---
 
@@ -158,13 +156,13 @@ All configuration is dynamically resolved at boot — **zero hardcoded secrets**
 
 Before deploying, ensure you have the following:
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| [Terraform](https://developer.hashicorp.com/terraform/install) | `~> 1.14.0` | Infrastructure provisioning |
-| [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) | v2 | AWS API interactions |
-| [Docker](https://docs.docker.com/get-docker/) | Latest | Building backend images |
-| [Node.js](https://nodejs.org/) | 20+ | Building the frontend |
-| AWS Account | — | With appropriate IAM permissions |
+| Tool                                                                           | Version     | Purpose                          |
+| ------------------------------------------------------------------------------ | ----------- | -------------------------------- |
+| [Terraform](https://developer.hashicorp.com/terraform/install)                 | `~> 1.14.0` | Infrastructure provisioning      |
+| [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) | v2          | AWS API interactions             |
+| [Docker](https://docs.docker.com/get-docker/)                                  | Latest      | Building backend images          |
+| [Node.js](https://nodejs.org/)                                                 | 20+         | Building the frontend            |
+| AWS Account                                                                    | —           | With appropriate IAM permissions |
 
 ### AWS Resources to Create Manually
 
@@ -247,12 +245,12 @@ npm run build
 
 ### 6. Configure GitHub Actions Secrets
 
-| Secret | Description |
-|--------|-------------|
-| `ROLE_ARN` | ARN of the IAM role for GitHub Actions (OIDC) |
-| `AWS_REGION` | AWS region (e.g., `ap-south-1`) |
-| `ECR_URI` | Full ECR repository URI |
-| `S3_BUCKET_NAME` | S3 bucket name for frontend deployment |
+| Secret           | Description                                   |
+| ---------------- | --------------------------------------------- |
+| `ROLE_ARN`       | ARN of the IAM role for GitHub Actions (OIDC) |
+| `AWS_REGION`     | AWS region (e.g., `ap-south-1`)               |
+| `ECR_URI`        | Full ECR repository URI                       |
+| `S3_BUCKET_NAME` | S3 bucket name for frontend deployment        |
 
 ---
 
@@ -260,15 +258,15 @@ npm run build
 
 After deployment, Terraform provides the following outputs:
 
-| Output | Description |
-|--------|-------------|
-| `cloudfront_domain_name` | CloudFront URL — your application's entry point |
-| `alb_dns_name` | ALB DNS name (internal, used by CloudFront) |
-| `asg_id` | Auto Scaling Group ID |
-| `asg_name` | Auto Scaling Group name (used by CI/CD for instance refresh) |
+| Output                       | Description                                                       |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `cloudfront_domain_name`     | CloudFront URL — your application's entry point                   |
+| `alb_dns_name`               | ALB DNS name (internal, used by CloudFront)                       |
+| `asg_id`                     | Auto Scaling Group ID                                             |
+| `asg_name`                   | Auto Scaling Group name (used by CI/CD for instance refresh)      |
 | `cloudfront_distribution_id` | CloudFront Distribution ID (used by CI/CD for cache invalidation) |
-| `docdb_cluster_endpoint` | DocumentDB cluster endpoint |
-| `docdb_connection_string` | Full MongoDB-compatible connection URI *(sensitive)* |
+| `docdb_cluster_endpoint`     | DocumentDB cluster endpoint                                       |
+| `docdb_connection_string`    | Full MongoDB-compatible connection URI _(sensitive)_              |
 
 ---
 
@@ -318,14 +316,14 @@ Production-Ready-MERN-AWS/
 
 NAT Gateways cost ~$32/month per AZ plus data processing fees. Instead, this architecture uses **6 VPC Endpoints** to provide private connectivity to AWS services:
 
-| Endpoint | Type | Purpose |
-|----------|------|---------|
-| `ecr.api` | Interface | ECR authentication and image metadata |
-| `ecr.dkr` | Interface | Docker image layer downloads |
-| `s3` | Gateway (free) | ECR image storage + TLS cert download |
-| `ssm` | Interface | SSM Parameter Store API calls |
-| `ssmmessages` | Interface | SSM Session Manager control channel |
-| `ec2messages` | Interface | SSM Run Command message delivery |
+| Endpoint      | Type           | Purpose                               |
+| ------------- | -------------- | ------------------------------------- |
+| `ecr.api`     | Interface      | ECR authentication and image metadata |
+| `ecr.dkr`     | Interface      | Docker image layer downloads          |
+| `s3`          | Gateway (free) | ECR image storage + TLS cert download |
+| `ssm`         | Interface      | SSM Parameter Store API calls         |
+| `ssmmessages` | Interface      | SSM Session Manager control channel   |
+| `ec2messages` | Interface      | SSM Run Command message delivery      |
 
 ### Why DocumentDB over MongoDB Atlas?
 
@@ -353,21 +351,21 @@ NAT Gateways cost ~$32/month per AZ plus data processing fees. Instead, this arc
 
 ## 🧩 Technology Stack
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| **IaC** | Terraform | `~> 1.14.0` |
-| **Cloud Provider** | AWS (`hashicorp/aws`) | `~> 6.32` |
-| **Compute** | EC2 (`c7i-flex.large`) + Docker | Amazon Linux 2023 |
-| **Container Registry** | Amazon ECR | — |
-| **Load Balancer** | Application Load Balancer (ALB) | HTTP |
-| **Auto Scaling** | ASG with CPU target tracking | 50% threshold |
-| **Database** | Amazon DocumentDB | `5.0.0` |
-| **Frontend Hosting** | S3 + CloudFront | OAC + HTTPS |
-| **Secrets** | SSM Parameter Store | SecureString |
-| **CI/CD** | GitHub Actions | OIDC federation |
-| **State Management** | S3 Backend | Native locking |
-| **Backend Runtime** | Node.js + Express | `22.14.0-alpine` |
-| **Frontend Framework** | React + TypeScript + Vite | `18.2.0` |
+| Layer                  | Technology                      | Version           |
+| ---------------------- | ------------------------------- | ----------------- |
+| **IaC**                | Terraform                       | `~> 1.14.0`       |
+| **Cloud Provider**     | AWS (`hashicorp/aws`)           | `~> 6.32`         |
+| **Compute**            | EC2 (`c7i-flex.large`) + Docker | Amazon Linux 2023 |
+| **Container Registry** | Amazon ECR                      | —                 |
+| **Load Balancer**      | Application Load Balancer (ALB) | HTTP              |
+| **Auto Scaling**       | ASG with CPU target tracking    | 50% threshold     |
+| **Database**           | Amazon DocumentDB               | `5.0.0`           |
+| **Frontend Hosting**   | S3 + CloudFront                 | OAC + HTTPS       |
+| **Secrets**            | SSM Parameter Store             | SecureString      |
+| **CI/CD**              | GitHub Actions                  | OIDC federation   |
+| **State Management**   | S3 Backend                      | Native locking    |
+| **Backend Runtime**    | Node.js + Express               | `22.14.0-alpine`  |
+| **Frontend Framework** | React + TypeScript + Vite       | `18.2.0`          |
 
 ---
 
@@ -375,15 +373,15 @@ NAT Gateways cost ~$32/month per AZ plus data processing fees. Instead, this arc
 
 This architecture is designed with cost-efficiency in mind:
 
-| Decision | Savings |
-|----------|---------|
-| **No NAT Gateway** | ~$64/month saved (2 AZs × $32/month) |
-| **S3 Gateway Endpoint** | Free (vs. Interface Endpoint charges) |
-| **`c7i-flex.large` instances** | Cost-effective burstable compute |
-| **`db.t3.medium` DocumentDB** | Right-sized for moderate workloads |
-| **CloudFront caching** | Reduces origin requests and ALB load |
-| **ASG min=1, max=2** | Scales down during low traffic |
-| **Audit logs disabled** | Reduces CloudWatch Logs costs (enable for prod) |
+| Decision                       | Savings                                         |
+| ------------------------------ | ----------------------------------------------- |
+| **No NAT Gateway**             | ~$64/month saved (2 AZs × $32/month)            |
+| **S3 Gateway Endpoint**        | Free (vs. Interface Endpoint charges)           |
+| **`c7i-flex.large` instances** | Cost-effective burstable compute                |
+| **`db.t3.medium` DocumentDB**  | Right-sized for moderate workloads              |
+| **CloudFront caching**         | Reduces origin requests and ALB load            |
+| **ASG min=1, max=2**           | Scales down during low traffic                  |
+| **Audit logs disabled**        | Reduces CloudWatch Logs costs (enable for prod) |
 
 ---
 
