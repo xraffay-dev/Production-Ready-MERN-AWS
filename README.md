@@ -19,7 +19,7 @@ This project demonstrates how to architect, provision, and deploy a complete MER
 
 ## 📐 Architecture Overview
 
-![AWS Architecture Diagram](./Architecture%20Diagram%20BG-White.svg)
+![AWS Architecture Diagram](./docs/Architecture%20Diagram%20BG-White.svg)
 
 ### Traffic Flow
 
